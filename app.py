@@ -16,6 +16,16 @@ def json_to_database(json_path: str, engine):
     )
 
 
+def fill_db(students_path: str, rooms_path: str, engine):
+    try:
+        json_to_database(rooms_path, engine)
+        json_to_database(students_path, engine)
+    except Exception:
+        pass
+
+
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--students',help='Path to students file', metavar='path')
@@ -43,13 +53,8 @@ def do_query(query_file: str, engine, format: str):
 if __name__ == '__main__':
     USER_NAME, USER_PASS, DB_NAME, HOST, PORT = get_env()
     args = parse_arguments()
-
     engine = create_engine(f'postgresql+psycopg2://{USER_NAME}:{USER_PASS}@{HOST}:{PORT}/{DB_NAME}')
+    fill_db(args.students, args.rooms, engine)
 
     for q in ('query1.sql', 'query2.sql', 'query3.sql', 'query4.sql'):
         do_query(q, engine, args.format)
-
-    # do_query('query1.sql', engine, 'xml')
-    # do_query('query2.sql', engine, 'xml')
-    # do_query('query3.sql', engine, 'xml')
-    # do_query('query4.sql', engine, 'xml')
