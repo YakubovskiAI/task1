@@ -20,7 +20,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--students',help='Path to students file', metavar='path')
     parser.add_argument('-r','--rooms',help='Path to rooms file', metavar='path')
-    parser.add_argument('-f','--format ',help='Output format', choices=['xml','json'])
+    parser.add_argument('-f','--format',help='Output format', choices=['xml','json'])
     return parser.parse_args()
 
 
@@ -29,11 +29,27 @@ def get_env():
     return os.getenv('USER_NAME'), os.getenv('USER_PASS'), os.getenv('DB_NAME'), os.getenv('HOST'), os.getenv('PORT')
 
 
+def do_query(query_file: str, engine, format: str):
+    with open(query_file, 'r') as file:
+        query = file.read()
+        df = pd.read_sql(query,con=engine)
+        query_name = query_file.split('.')[0]
+        if format == 'json':
+            df.to_json(f'{query_name}_results.json', orient='records', indent=4)
+        elif format == 'xml':
+            df.to_xml(f'{query_name}_results.xml',pretty_print=True, index=False)
+
+
 if __name__ == '__main__':
     USER_NAME, USER_PASS, DB_NAME, HOST, PORT = get_env()
+    args = parse_arguments()
 
-    parse_arguments()
+    engine = create_engine(f'postgresql+psycopg2://{USER_NAME}:{USER_PASS}@{HOST}:{PORT}/{DB_NAME}')
 
-    engine = create_engine(
-    f'postgresql+psycopg2://{USER_NAME}:{USER_PASS}@{HOST}:{PORT}/{DB_NAME}'
-    )
+    for q in ('query1.sql', 'query2.sql', 'query3.sql', 'query4.sql'):
+        do_query(q, engine, args.format)
+
+    # do_query('query1.sql', engine, 'xml')
+    # do_query('query2.sql', engine, 'xml')
+    # do_query('query3.sql', engine, 'xml')
+    # do_query('query4.sql', engine, 'xml')

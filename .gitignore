@@ -1,3 +1,5 @@
 pyvenv.cfg
 .env
 /env/
+query?_results.json
+query?_results.xml
