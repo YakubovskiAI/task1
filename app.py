@@ -3,6 +3,7 @@ from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
 import argparse
+from pathlib import Path
 
 
 def json_to_database(json_path: str, engine):
@@ -43,10 +44,13 @@ def do_query(query_file: str, engine, format: str):
         query = file.read()
         df = pd.read_sql(query,con=engine)
         query_name = query_file.split('.')[0]
+        output_dir = Path(f'results/{query_name}')
+        output_dir.mkdir(parents=True, exist_ok=True)
+        
         if format == 'json':
-            df.to_json(f'{query_name}_results.json', orient='records', indent=4)
+            df.to_json(output_dir / f'{query_name}_results.json', orient='records', indent=4)
         elif format == 'xml':
-            df.to_xml(f'{query_name}_results.xml',pretty_print=True, index=False)
+            df.to_xml(output_dir / f'{query_name}_results.xml', pretty_print=True, index=False)
 
 
 if __name__ == '__main__':
