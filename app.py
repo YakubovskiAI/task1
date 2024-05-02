@@ -17,11 +17,10 @@ def json_to_database(json_path: str, engine):
 
 
 def fill_db(students_path: str, rooms_path: str, engine):
-    try:
-        json_to_database(rooms_path, engine)
-        json_to_database(students_path, engine)
-    except Exception:
-        pass
+    with engine.begin() as conn:
+        conn.exec_driver_sql("TRUNCATE TABLE rooms CASCADE")
+    json_to_database(rooms_path, engine)
+    json_to_database(students_path, engine)
 
 
 
