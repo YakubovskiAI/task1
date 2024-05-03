@@ -10,10 +10,10 @@ def json_to_database(json_path: str, engine):
     df = pd.read_json(json_path)
     table_name = json_path.split('/')[-1].split('.')[0]
     df.to_sql(
-    table_name,
-    index=False,
-    con=engine,
-    if_exists='append'
+        table_name,
+        index=False,
+        con=engine,
+        if_exists='append'
     )
 
 
@@ -39,11 +39,11 @@ def get_env():
     return os.getenv('USER_NAME'), os.getenv('USER_PASS'), os.getenv('DB_NAME'), os.getenv('HOST'), os.getenv('PORT')
 
 
-def do_query(query_file: str, engine, format: str):
-    with open(query_file, 'r') as file:
+def do_query(query_path: str, engine, format: str):
+    with open(query_path, 'r') as file:
         query = file.read()
         df = pd.read_sql(query,con=engine)
-        query_name = query_file.split('.')[0]
+        query_name = query_path.split('/')[-1].split('.')[0]
         output_dir = Path(f'results/{query_name}')
         output_dir.mkdir(parents=True, exist_ok=True)
         
@@ -60,4 +60,4 @@ if __name__ == '__main__':
     fill_db(args.students, args.rooms, engine)
 
     for q in ('query1.sql', 'query2.sql', 'query3.sql', 'query4.sql'):
-        do_query(q, engine, args.format)
+        do_query(f'task_queries/{q}', engine, args.format)
