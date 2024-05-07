@@ -1,0 +1,5 @@
+/.git
+/env
+/results
+.gitignore
+pyvenv.cfg

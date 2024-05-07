@@ -1,0 +1,19 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres
+    container_name: postgres_db_task_1
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${USER_NAME}
+      POSTGRES_PASSWORD: ${USER_PASS}
+    ports:
+      - "5432:5432"
+
+  app:
+    build: .
+    container_name: my_app_task_1
+    volumes:
+      - ../data_results:/app/results
+    depends_on:
+      - postgres

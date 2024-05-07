@@ -1,9 +1,11 @@
 import pandas as pd
 from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 import os
 from dotenv import load_dotenv
 import argparse
 from pathlib import Path
+import time
 
 
 def json_to_database(json_path: str, engine):
@@ -20,8 +22,6 @@ def json_to_database(json_path: str, engine):
 def fill_db(students_path: str, rooms_path: str, engine):
     json_to_database(rooms_path, engine)
     json_to_database(students_path, engine)
-
-
 
 
 def parse_arguments():
@@ -61,10 +61,25 @@ def create_tables(engine):
             conn.exec_driver_sql(file.read())
 
 
+def wait_for_postgres(engine):
+    while True:
+        try:
+            conn = engine.connect()
+            print("База данных доступна.")
+            conn.close()
+            return True
+        
+        except OperationalError as e:
+            print(f"База данных недоступна. Повторная попытка через 1 секунду.")
+            time.sleep(1)
+
+
+
 if __name__ == '__main__':
     USER_NAME, USER_PASS, DB_NAME, HOST, PORT = get_env()
     args = parse_arguments()
     engine = create_engine(f'postgresql+psycopg2://{USER_NAME}:{USER_PASS}@{HOST}:{PORT}/{DB_NAME}')
+    wait_for_postgres(engine)
     create_tables(engine)
     fill_db(args.students, args.rooms, engine)
 
