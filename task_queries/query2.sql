@@ -4,4 +4,4 @@ from rooms
     join students on students.room = rooms.id
 group by rooms.id
 order by avg(age(students.birthday))
-limit 5
+limit 5;
