@@ -37,5 +37,8 @@ Or if you want all containers to stop after completing script:
 $ docker-compose up --abort-on-container-exit
 ```
 
+You can change arguments in Dockerfile. Default is:
+
+CMD ["-s", "data/students.json", "-r", "data/rooms.json", "-f", "json"]
 ## Results
 Results of performing scripts u will find in "data_results" directory. It will contain all queries results and folder with logs.
