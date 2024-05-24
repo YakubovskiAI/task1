@@ -3,6 +3,7 @@ all database operations) and main func(that sends quries
 to DBManager for performing and then saving results)"""
 
 import argparse
+import logging
 import os
 import time
 from pathlib import Path
@@ -29,11 +30,11 @@ class DatabaseManager:
         while True:
             try:
                 conn = self.engine.connect()
-                print("Database is available.")
+                logging.info("Database is available.")
                 conn.close()
                 return True
             except OperationalError:
-                print("Database is unavailable. Retry after 1 second.")
+                logging.info("Database is unavailable. Retry after 1 second.")
                 time.sleep(1)
 
     def create_tables(self):
@@ -43,10 +44,12 @@ class DatabaseManager:
             conn.exec_driver_sql("DROP TABLE IF EXISTS students")
             with open("create_queries/create_rooms.sql", "r", encoding="utf-8") as file:
                 conn.exec_driver_sql(file.read())
+                logging.info("Created rooms table")
             with open(
                 "create_queries/create_students.sql", "r", encoding="utf-8"
             ) as file:
                 conn.exec_driver_sql(file.read())
+                logging.info("Created students table")
 
     def json_to_database(self, json_path: str):
         """Loading json file into DB as rows in table
@@ -58,6 +61,7 @@ class DatabaseManager:
         df = pd.read_json(json_path)
         table_name = Path(json_path).stem
         df.to_sql(table_name, index=False, con=self.engine, if_exists="append")
+        logging.info(f"Loaded data from {json_path} to {table_name} table")
 
     def fill_db(self, students_path: str, rooms_path: str):
         """Sending all json files for loading in DB
@@ -81,6 +85,7 @@ class DatabaseManager:
         with open(query_path, "r", encoding="utf-8") as file:
             query = file.read()
             df = pd.read_sql(query, con=self.engine)
+            logging.info(f"Query performed and saved in dataframe")
             query_name = Path(query_path).stem
             output_dir = Path(f"results/{query_name}")
             output_dir.mkdir(parents=True, exist_ok=True)
@@ -97,6 +102,9 @@ class DatabaseManager:
                     pretty_print=True,
                     index=False,
                 )
+            logging.info(
+                f"Results of query {query_path} saved in {output_dir / f"{query_name}_results."}{saving_format}"
+            )
 
 
 def parse_arguments():
@@ -127,6 +135,14 @@ def get_env():
 
 
 if __name__ == "__main__":
+    output_logs_dir = Path(f"results/logs")
+    if not os.path.exists(output_logs_dir):
+        os.makedirs(output_logs_dir)
+    logging.basicConfig(
+        level=logging.INFO,
+        filename="results/logs/logs.log",
+        format="%(asctime)s %(levelname)s %(message)s",
+    )
     USER_NAME, USER_PASS, DB_NAME, HOST, PORT = get_env()
     args = parse_arguments()
     db_manager = DatabaseManager(USER_NAME, USER_PASS, DB_NAME, HOST, PORT)
