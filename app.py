@@ -11,7 +11,7 @@ from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, TimeoutError
 
 
 class DatabaseManager:
@@ -27,7 +27,8 @@ class DatabaseManager:
 
     def wait_for_postgres(self):
         """Waiting database connection"""
-        while True:
+        attempts = 0
+        while attempts < 10:
             try:
                 conn = self.engine.connect()
                 logging.info("Database is available.")
@@ -35,7 +36,9 @@ class DatabaseManager:
                 return True
             except OperationalError:
                 logging.info("Database is unavailable. Retry after 1 second.")
+                attempts += 1
                 time.sleep(1)
+        raise TimeoutError("Connection timed out.")
 
     def create_tables(self):
         """Creating tables for storing datasets"""
