@@ -3,3 +3,4 @@ pyvenv.cfg
 /env
 /results 
 /__pycache__
+.coverage
